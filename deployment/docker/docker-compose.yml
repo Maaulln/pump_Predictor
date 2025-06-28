@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  # API Service
+  pump-predictor-api:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile
+    container_name: pump-predictor-api
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
+      - MODEL_PATH=/app/models
+      - LOG_LEVEL=INFO
+    volumes:
+      - ../../models:/app/models
+      - ../../data:/app/data
+      - ../../logs:/app/logs
+      - ../../reports:/app/reports
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - pump-network
+
+  # Dashboard Service
+  pump-predictor-dashboard:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile.dashboard
+    container_name: pump-predictor-dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      - API_HOST=pump-predictor-api
+      - API_PORT=8000
+    depends_on:
+      - pump-predictor-api
+    restart: unless-stopped
+    networks:
+      - pump-network
+
+  # Optional: Redis for caching (future enhancement)
+  redis:
+    image: redis:7-alpine
+    container_name: pump-predictor-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - pump-network
+
+  # Optional: PostgreSQL for storing prediction history
+  postgres:
+    image: postgres:15-alpine
+    container_name: pump-predictor-postgres
+    environment:
+      POSTGRES_DB: pump_predictor
+      POSTGRES_USER: pump_user
+      POSTGRES_PASSWORD: pump_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    networks:
+      - pump-network
+
+volumes:
+  redis_data:
+  postgres_data:
+
+networks:
+  pump-network:
+    driver: bridge

@@ -1,0 +1,71 @@
+from setuptools import setup, find_packages
+
+setup(
+    name="pump-predictor",
+    version="1.0.0",
+    author="maaulln",
+    author_email="maaulln@example.com",
+    description="Advanced Pump Maintenance Predictor using Machine Learning",
+    long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
+    url="https://github.com/yourusername/pump_Predictor-main",
+    packages=find_packages(),
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Manufacturing",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+    ],
+    python_requires=">=3.8",
+    install_requires=[
+        "scikit-learn>=1.3.0",
+        "pandas>=2.0.0",
+        "numpy>=1.24.0",
+        "xgboost>=1.7.0",
+        "lightgbm>=4.0.0",
+        "optuna>=3.3.0",
+        "shap>=0.42.0",
+        "lime>=0.2.0.1",
+        "matplotlib>=3.7.0",
+        "seaborn>=0.12.0",
+        "plotly>=5.15.0",
+        "fastapi>=0.103.0",
+        "uvicorn>=0.23.0",
+        "pydantic>=2.3.0",
+        "streamlit>=1.28.0",
+        "joblib>=1.3.0",
+        "tqdm>=4.65.0",
+        "python-dotenv>=1.0.0",
+        "requests>=2.31.0",
+        "pytest>=7.4.0",
+        "pytest-cov>=4.1.0",
+        "httpx>=0.24.0",
+    ],
+    extras_require={
+        "dev": [
+            "black>=23.0.0",
+            "isort>=5.12.0",
+            "flake8>=6.0.0",
+            "pre-commit>=3.3.0",
+        ],
+        "production": [
+            "gunicorn>=21.2.0",
+            "prometheus-client>=0.17.0",
+            "sentry-sdk>=1.32.0",
+        ]
+    },
+    entry_points={
+        "console_scripts": [
+            "pump-predictor=pump_predictor.main:main",
+        ],
+    },
+    include_package_data=True,
+    package_data={
+        "pump_predictor": ["config/*.yaml", "templates/*.html"],
+    },
+)
