@@ -1,14 +1,93 @@
 """
-Configuration settings for pump maintenance prediction
+Configuration settings for pump maintenance prediction with environment support
 """
 import os
 from pathlib import Path
 from dataclasses import dataclass
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
+
+class ConfigValidationError(Exception):
+    """Configuration validation error"""
+    pass
+
+class EnvironmentConfig:
+    """Environment-specific configuration"""
+    
+    def __init__(self):
+        self.environment = os.getenv("ENVIRONMENT", "development")
+        self.debug = os.getenv("DEBUG", "false").lower() == "true"
+        self.testing = os.getenv("TESTING", "false").lower() == "true"
+        
+        # Validate environment
+        valid_envs = ["development", "staging", "production"]
+        if self.environment not in valid_envs:
+            raise ConfigValidationError(f"Invalid environment: {self.environment}. Must be one of {valid_envs}")
+    
+    @property
+    def is_development(self) -> bool:
+        return self.environment == "development"
+    
+    @property
+    def is_production(self) -> bool:
+        return self.environment == "production"
+    
+    @property
+    def is_staging(self) -> bool:
+        return self.environment == "staging"
+
+class APIConfig:
+    """API configuration"""
+    
+    def __init__(self):
+        self.host = os.getenv("API_HOST", "localhost")
+        self.port = int(os.getenv("API_PORT", "8000"))
+        self.workers = int(os.getenv("API_WORKERS", "1"))
+        self.reload = os.getenv("API_RELOAD", "false").lower() == "true"
+        self.secret_key = os.getenv("SECRET_KEY")
+        
+        # Validate required settings for production
+        env_config = EnvironmentConfig()
+        if env_config.is_production and not self.secret_key:
+            raise ConfigValidationError("SECRET_KEY is required in production")
+
+class SecurityConfig:
+    """Security configuration"""
+    
+    def __init__(self):
+        self.api_key_admin = os.getenv("API_KEY_ADMIN")
+        self.api_key_user = os.getenv("API_KEY_USER")
+        self.rate_limit_requests = int(os.getenv("RATE_LIMIT_REQUESTS", "100"))
+        self.rate_limit_window = int(os.getenv("RATE_LIMIT_WINDOW", "3600"))
+        
+        # Validate for production
+        env_config = EnvironmentConfig()
+        if env_config.is_production:
+            if not self.api_key_admin or self.api_key_admin == "admin_key_123_change_in_production":
+                raise ConfigValidationError("API_KEY_ADMIN must be changed in production")
+            if not self.api_key_user or self.api_key_user == "user_key_456_change_in_production":
+                raise ConfigValidationError("API_KEY_USER must be changed in production")
+
+class LoggingConfig:
+    """Logging configuration"""
+    
+    def __init__(self):
+        self.level = os.getenv("LOG_LEVEL", "INFO")
+        self.format = os.getenv("LOG_FORMAT", "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        
+        # Validate log level
+        valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+        if self.level not in valid_levels:
+            raise ConfigValidationError(f"Invalid log level: {self.level}. Must be one of {valid_levels}")
+
+# Initialize configuration
+ENV_CONFIG = EnvironmentConfig()
+API_CONFIG = APIConfig()
+SECURITY_CONFIG = SecurityConfig()
+LOGGING_CONFIG = LoggingConfig()
 # Project paths
 PROJECT_ROOT = Path(__file__).parent.parent
 DATA_DIR = PROJECT_ROOT / "data"

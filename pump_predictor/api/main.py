@@ -1,9 +1,10 @@
 """
-FastAPI application for pump maintenance prediction
+FastAPI application for pump maintenance prediction with security
 """
 from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBearer
 from datetime import datetime, timedelta
 from pathlib import Path
 import joblib
@@ -23,15 +24,23 @@ from pump_predictor.api.schemas import (
     PredictionExplanation
 )
 from pump_predictor.utils.logger import get_logger
+from pump_predictor.utils.security import (
+    get_current_user, require_permission, rate_limit,
+    input_sanitizer, security_manager
+)
+from pump_predictor.data.data_validator import DataValidator, ValidationLevel
 from pump_predictor.config import API_CONFIG
 
 logger = get_logger(__name__)
 
-# Initialize FastAPI app
+# Initialize data validator
+data_validator = DataValidator(validation_level=ValidationLevel.MODERATE)
+
+# Initialize FastAPI app with security
 app = FastAPI(
     title="🔧 Pump Maintenance Prediction API",
-    description="Advanced ML-powered API for predicting pump maintenance needs",
-    version="1.0.0",
+    description="Advanced ML-powered API for predicting pump maintenance needs with security",
+    version="2.0.0",
     docs_url="/docs",
     redoc_url="/redoc"
 )

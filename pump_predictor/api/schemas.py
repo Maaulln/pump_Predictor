@@ -7,28 +7,61 @@ import numpy as np
 from datetime import datetime
 
 class PumpData(BaseModel):
-    """Schema for individual pump sensor data"""
+    """Schema for individual pump sensor data - matches config.py FEATURE_COLUMNS"""
     temperature: float = Field(..., description="Temperature reading in Celsius", ge=-50, le=200)
     pressure: float = Field(..., description="Pressure reading in PSI", ge=0, le=1000)
     vibration: float = Field(..., description="Vibration reading in Hz", ge=0, le=100)
     flow_rate: float = Field(..., description="Flow rate in L/min", ge=0, le=1000)
-    # Add more features as needed based on your actual data
+    motor_current: float = Field(..., description="Motor current in Amperes", ge=0, le=50)
+    bearing_temperature: float = Field(..., description="Bearing temperature in Celsius", ge=-20, le=150)
+    oil_level: float = Field(..., description="Oil level percentage", ge=0, le=100)
+    power_consumption: float = Field(..., description="Power consumption in kW", ge=0, le=100)
+    efficiency: float = Field(..., description="Efficiency percentage", ge=0, le=100)
+    operating_hours: float = Field(..., description="Operating hours", ge=0, le=100000)
+    load_factor: float = Field(..., description="Load factor ratio", ge=0, le=1)
+    ambient_temperature: float = Field(..., description="Ambient temperature in Celsius", ge=-40, le=60)
+    humidity: float = Field(..., description="Humidity percentage", ge=0, le=100)
     
-    @validator('temperature')
-    def validate_temperature(cls, v):
-        if not -50 <= v <= 200:
-            raise ValueError('Temperature must be between -50 and 200 Celsius')
+    @validator('temperature', 'bearing_temperature', 'ambient_temperature')
+    def validate_temperatures(cls, v, field):
+        temp_ranges = {
+            'temperature': (-50, 200),
+            'bearing_temperature': (-20, 150),
+            'ambient_temperature': (-40, 60)
+        }
+        min_val, max_val = temp_ranges.get(field.name, (-50, 200))
+        if not min_val <= v <= max_val:
+            raise ValueError(f'{field.name} must be between {min_val} and {max_val}')
         return v
     
     @validator('pressure')
     def validate_pressure(cls, v):
         if v < 0:
             raise ValueError('Pressure cannot be negative')
+        if v > 1000:
+            raise ValueError('Pressure seems too high (>1000 PSI)')
+        return v
+    
+    @validator('efficiency', 'oil_level', 'humidity')
+    def validate_percentages(cls, v, field):
+        if not 0 <= v <= 100:
+            raise ValueError(f'{field.name} must be a percentage between 0 and 100')
+        return v
+    
+    @validator('load_factor')
+    def validate_load_factor(cls, v):
+        if not 0 <= v <= 1:
+            raise ValueError('Load factor must be between 0 and 1')
         return v
     
     def to_array(self) -> np.ndarray:
         """Convert to numpy array for model prediction"""
-        return np.array([self.temperature, self.pressure, self.vibration, self.flow_rate])
+        return np.array([
+            self.temperature, self.pressure, self.vibration, self.flow_rate,
+            self.motor_current, self.bearing_temperature, self.oil_level,
+            self.power_consumption, self.efficiency, self.operating_hours,
+            self.load_factor, self.ambient_temperature, self.humidity
+        ])
     
     class Config:
         schema_extra = {
@@ -36,7 +69,16 @@ class PumpData(BaseModel):
                 "temperature": 75.5,
                 "pressure": 150.0,
                 "vibration": 2.5,
-                "flow_rate": 250.0
+                "flow_rate": 250.0,
+                "motor_current": 15.2,
+                "bearing_temperature": 80.0,
+                "oil_level": 85.0,
+                "power_consumption": 12.5,
+                "efficiency": 88.0,
+                "operating_hours": 1500.0,
+                "load_factor": 0.75,
+                "ambient_temperature": 25.0,
+                "humidity": 60.0
             }
         }
 

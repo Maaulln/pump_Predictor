@@ -339,26 +339,48 @@ python generate_dataset.py
 
 ## 🔧 Quick Start Guide
 
-### 1. Instalasi Cepat
+### 1. Development Setup
 
 ```bash
 # Clone dan setup
-git clone <repository-url>
-cd pump_Predictor-main
+git clone https://github.com/Maaulln/pump_Predictor.git
+cd pump_Predictor
 
 # Auto setup dengan script
 chmod +x scripts/setup.sh
 ./scripts/setup.sh
+
+# Manual setup
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+pip install -r requirements.txt
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your settings
 ```
 
-### 2. Generate Dataset (Opsional)
+### 2. Security Configuration (IMPORTANT)
+
+⚠️ **Change default credentials before production!**
+
+```bash
+# Generate secure keys
+python -c "import secrets; print('SECRET_KEY=' + secrets.token_urlsafe(32))"
+python -c "import secrets; print('API_KEY_ADMIN=admin_' + secrets.token_urlsafe(32))"
+python -c "import secrets; print('API_KEY_USER=user_' + secrets.token_urlsafe(32))"
+
+# Add to .env file
+```
+
+### 3. Generate Dataset (Opsional)
 
 ```bash
 # Generate data baru untuk testing
 python generate_dataset.py
 ```
 
-### 3. Training Model
+### 4. Training Model
 
 ```bash
 # Training basic
@@ -368,15 +390,47 @@ python generate_dataset.py
 ./scripts/train_models.sh --tune
 ```
 
-### 4. Jalankan Aplikasi
+### 5. Jalankan Aplikasi
 
 ```bash
 # Start semua services
 ./scripts/start_services.sh
 
-# Akses:
-# API: http://localhost:8000
-# Dashboard: http://localhost:8501
+# Manual start
+# API: python -m pump_predictor.api.main
+# Dashboard: streamlit run pump_predictor/streamlit_app/app.py
+```
+
+### 6. Production Deployment
+
+```bash
+# Docker Compose (Recommended)
+docker-compose -f deployment/docker/docker-compose.yml up -d
+
+# Kubernetes
+kubectl apply -f deployment/kubernetes/
+
+# See DEPLOYMENT.md for detailed production setup
+```
+
+### 7. Access Applications
+
+- **API Documentation**: <http://localhost:8000/docs>
+- **Dashboard Web**: <http://localhost:8501>
+- **Health Check**: <http://localhost:8000/health>
+- **Metrics**: <http://localhost:8000/metrics>
+
+### 8. API Authentication
+
+```bash
+# Using API Key (Header)
+curl -H "Authorization: Bearer your_api_key" http://localhost:8000/predict
+
+# Test endpoints
+curl -X POST "http://localhost:8000/predict" \
+  -H "Authorization: Bearer your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{"temperature": 75.5, "pressure": 150.0, "vibration": 2.5, "flow_rate": 250.0, ...}'
 ```
 
 ## 📋 Format Data
