@@ -2,7 +2,7 @@
 
 Sistem machine learning komprehensif untuk prediksi kebutuhan maintenance pompa industri menggunakan ensemble model canggih, explainable AI, dan arsitektur produksi yang scalable.
 
-## 📊 Rumus Matematika (DIKOREKSI)
+## 📊 Rumus Matematika
 
 ### 1. Random Forest
 
