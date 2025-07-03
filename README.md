@@ -235,7 +235,7 @@ Mempertahankan proporsi kelas yang sama di setiap fold
 
 ```
 x_scaled = (x - μ) / σ
-dimana μ = mean, σ = standard deviation
+μ = mean, σ = standard deviation
 ```
 
 **Min-Max Scaler:**
@@ -248,7 +248,7 @@ x_scaled = (x - x_min) / (x_max - x_min)
 
 ```
 x_scaled = (x - median) / IQR
-dimana IQR = Q75 - Q25
+IQR = Q75 - Q25
 ```
 
 ### 10. Feature Engineering
